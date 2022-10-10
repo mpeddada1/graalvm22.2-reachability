@@ -39,41 +39,30 @@ import org.graalvm.nativeimage.hosted.RuntimeReflection;
 
 final class MyNativeImageFeature implements Feature {
 
-    // Proto classes to check on the classpath.
-    private static final String PROTO_MESSAGE_CLASS = "com.anotherpackage.GeneratedMessage";
-
-    // Prefixes of methods accessed reflectively by
-    private static final List<String> METHOD_ACCESSOR_PREFIXES =
-            Arrays.asList("get", "set", "has", "add", "clear", "newBuilder");
+    private static final String GENERATED_MESSAGE_CLASS = "com.anotherpackage.GeneratedMessage";
 
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access) {
-        Class<?> protoMessageClass = access.findClassByName(PROTO_MESSAGE_CLASS);
-        if (protoMessageClass != null) {
+        Class<?> generatedMessageClass = access.findClassByName(GENERATED_MESSAGE_CLASS);
+        if (generatedMessageClass != null) {
             Method internalAccessorMethod =
-                    getMethodOrFail(protoMessageClass, "internalGetFieldAccessorTable");
-            System.out.println("******PROTOMESSAGE CLASS******");
+                    getMethodOrFail(generatedMessageClass, "invokeAccessor");
 
-
-            // Finds every class whose `internalGetFieldAccessorTable()` is reached and registers it.
-            // `internalGetFieldAccessorTable()` is used downstream to access the class reflectively.
+            // Finds every class whose `invokeAccessor()` is reached and registers it.
+            // `invokeAccessor()` is used downstream to access the class reflectively.
             access.registerMethodOverrideReachabilityHandler(
                     (duringAccess, method) -> {
-                        System.out.println("******THIS POINT REACHED IN GRAALVM 22.1 but NOT in 22.2*******");
-                        System.out.println(method.getDeclaringClass());
+                        System.out.println("******THIS POINT IS REACHED IN GRAALVM 22.1 but NOT in 22.2*******");
                         registerFieldAccessors(method.getDeclaringClass());
                     },
                     internalAccessorMethod);
-            System.out.println("AFTER ACCESS");
         }
     }
 
-    /** Given a proto class, registers the public accessor methods for the provided proto class. */
+    /** Given a class, registers the public accessor methods for the provided class. */
     private static void registerFieldAccessors(Class<?> protoClass) {
         for (Method method : protoClass.getMethods()) {
-            boolean hasAccessorPrefix =
-                    METHOD_ACCESSOR_PREFIXES.stream().anyMatch(prefix -> method.getName().startsWith(prefix));
-            if (hasAccessorPrefix) {
+            if (method.getName().startsWith("get")) {
                 RuntimeReflection.register(method);
             }
         }

@@ -55,13 +55,6 @@
                         <version>0.9.14</version> <!-- or newer version -->
                         <extensions>true</extensions>
                         <executions>
-                            <execution>
-                                <id>build-native</id>
-                                <goals>
-                                    <goal>build</goal>
-                                </goals>
-                                <phase>package</phase>
-                            </execution>
                                 <execution>
                                     <id>test-native</id>
                                     <goals>
@@ -77,7 +70,6 @@
                                 <buildArg>--verbose</buildArg>
 <!--                                <buildArg>-H:-RunReachabilityHandlersConcurrently</buildArg>-->
                             </buildArgs>
-                            <mainClass>com.example.HelloWorld</mainClass>
                         </configuration>
                     </plugin>
                     <plugin>

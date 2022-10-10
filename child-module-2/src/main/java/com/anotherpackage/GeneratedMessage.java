@@ -4,34 +4,32 @@ import java.lang.reflect.Method;
 
 public abstract class GeneratedMessage {
 
-    protected abstract GeneratedMessage.FieldAccessorTable internalGetFieldAccessorTable();
+    protected abstract A invokeAccessor();
+
+    public static class A {
+        public A initializeMethodAccessor(Class<? extends GeneratedMessage> messageClass, String camelCaseName){
+            MethodAccessor methodAccessor = new MethodAccessor(messageClass, camelCaseName);
+            return this;
+        }
+    }
+
+    public static class MethodAccessor {
+
+        public MethodAccessor(Class<? extends GeneratedMessage> messageClass, String camelCaseName) {
+            // The constructor of this class retrieves another method reflectively
+            retrieveMethod(messageClass,camelCaseName);
+        }
+    }
 
     @SuppressWarnings("unchecked")
-    private static Method getMethodOrDie(
+    private static Method retrieveMethod(
             final Class clazz, final String name, final Class... params) {
-        System.out.println("GET METHOD OR DIE");
         try {
             return clazz.getMethod(name, params);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(
                     "Generated message class \"" + clazz.getName() + "\" missing method \"" + name + "\".",
                     e);
-        }
-    }
-
-    public static class FieldAccessorTable {
-        public FieldAccessorTable ensureFieldAccessorsInitialized(Class<? extends GeneratedMessage> messageClass, String camelCaseName){
-            System.out.println("ENSURE FIELD ACCESSORS INITIALLIZED");
-            new SingularFieldAccessor(messageClass, camelCaseName);
-            return this;
-        }
-    }
-
-    public static class SingularFieldAccessor {
-
-        public SingularFieldAccessor(Class<? extends GeneratedMessage> messageClass, String camelCaseName) {
-            System.out.println("SINGULAR FIELD ACCESSOR");
-            getMethodOrDie(messageClass,camelCaseName);
         }
     }
 }
