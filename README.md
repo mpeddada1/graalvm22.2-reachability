@@ -37,3 +37,29 @@ For some reason, the `access.registerMethodOverrideReachabilityHandler()` method
 
 **Workaround**: Disable concurrent reachability handler by providing the following option to the `native-image` builder:
 `-H:-RunReachabilityHandlersConcurrently`
+
+
+## Troubleshooting Notes
+
+(1) Run `export USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM=true` before `mvn test -Pnative` also results in same failure:
+```
+**********VALUE of USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM************
+true
+com.example.MySampleTest > testSample FAILED
+
+
+Failures (1):
+  JUnit Vintage:MySampleTest:testSample
+    MethodSource [className = 'com.example.MySampleTest', methodName = 'testSample', methodParameterTypes = '']
+    => java.lang.RuntimeException: Generated message class "com.example.MySampleClass" missing method "getName".
+       com.anotherpackage.GeneratedMessage.retrieveMethod(GeneratedMessage.java:31)
+       com.anotherpackage.GeneratedMessage.access$000(GeneratedMessage.java:5)
+       com.anotherpackage.GeneratedMessage$MethodAccessor.<init>(GeneratedMessage.java:20)
+       com.anotherpackage.GeneratedMessage$A.initializeMethodAccessor(GeneratedMessage.java:11)
+       com.example.MySampleClass.invokeAccessor(MySampleClass.java:13)
+       [...]
+     Caused by: java.lang.NoSuchMethodException: com.example.MySampleClass.getName()
+       java.base@11.0.17/java.lang.Class.getMethod(DynamicHub.java:2108)
+       com.anotherpackage.GeneratedMessage.retrieveMethod(GeneratedMessage.java:28)
+       [...]
+```
