@@ -65,7 +65,7 @@ Failures (1):
 ```
 
 ## Does this sample work without the workaround in GraalVM 22.3.1 (latest)?
-No, the error is reproducible with GraalVM 22.3.1 as well
+No, the error is reproducible with GraalVM 22.3.1 as well. We get the following error when `-H:-RunReachabilityHandlersConcurrently` is removed. 
 
 ```build
 ===================================================================================
