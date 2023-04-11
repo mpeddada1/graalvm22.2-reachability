@@ -141,3 +141,60 @@ Failures (1):
        com.anotherpackage.GeneratedMessage.retrieveMethod(GeneratedMessage.java:28)
        [...]
 ```
+
+## GraalVM 23 Dev version
+https://github.com/oracle/graal/issues/5194 was fixed in GraalVM 23.
+Without `-H:-RunReachabilityHandlersConcurrently`, the build succeeds. 
+With `-H:-RunReachabilityHandlersConcurrently`, we end up getting the following error:
+
+```
+========================================================================================================================
+GraalVM Native Image: Generating 'native-tests' (executable)...
+========================================================================================================================
+[1/8] Initializing...                                                                                    (5.4s @ 0.16GB)
+ Version info: 'GraalVM 23.0.0-dev Java 17.0.7+4-jvmci-23.0-b09 CE'
+ Java version info: '17.0.7+4-jvmci-23.0-b09'
+ Graal compiler: optimization level: '2', target machine: 'x86-64-v3'
+ C compiler: gcc (linux, x86_64, 12.2.0)
+ Garbage collector: Serial GC (max heap size: 80% of RAM)
+ 2 user-specific feature(s)
+ - com.example.MyNativeImageFeature
+ - org.graalvm.junit.platform.JUnitPlatformFeature
+[junit-platform-native] Running in 'test listener' mode using files matching pattern [junit-platform-unique-ids*] found in folder [/usr/local/google/home/mpeddada/IdeaProjects/native-image-experiments/graalvm22.2-reachability/child-module/target/test-ids] and its subfolders.
+[2/8] Performing analysis...  []                                                                         (6.5s @ 0.63GB)
+   3,945 (81.41%) of  4,846 types reachable
+   4,858 (52.95%) of  9,175 fields reachable
+  17,849 (59.37%) of 30,064 methods reachable
+   1,103 types,    95 fields, and   257 methods registered for reflection
+
+------------------------------------------------------------------------------------------------------------------------
+                        0.5s (3.8% of total time) in 16 GCs | Peak RSS: 1.67GB | CPU load: 10.19
+------------------------------------------------------------------------------------------------------------------------
+Produced artifacts:
+ /usr/local/google/home/mpeddada/IdeaProjects/native-image-experiments/graalvm22.2-reachability/child-module/target/svm_err_b_20230411T204553.245_pid1486560.md (build_info)
+========================================================================================================================
+Failed generating 'native-tests' after 12.3s.
+
+The build process encountered an unexpected error:
+
+java.lang.NullPointerException: Cannot invoke "java.util.Set.iterator()" because "triggers" is null
+	at org.graalvm.nativeimage.builder/com.oracle.svm.hosted.ReachabilityHandlerFeature.processReachable(ReachabilityHandlerFeature.java:173)
+	at org.graalvm.nativeimage.builder/com.oracle.svm.hosted.ReachabilityHandlerFeature.duringAnalysis(ReachabilityHandlerFeature.java:128)
+	at org.graalvm.nativeimage.builder/com.oracle.svm.hosted.NativeImageGenerator.lambda$runPointsToAnalysis$10(NativeImageGenerator.java:768)
+	at org.graalvm.nativeimage.builder/com.oracle.svm.hosted.FeatureHandler.forEachFeature(FeatureHandler.java:86)
+	at org.graalvm.nativeimage.builder/com.oracle.svm.hosted.NativeImageGenerator.lambda$runPointsToAnalysis$11(NativeImageGenerator.java:768)
+	at org.graalvm.nativeimage.pointsto/com.oracle.graal.pointsto.AbstractAnalysisEngine.runAnalysis(AbstractAnalysisEngine.java:179)
+	at org.graalvm.nativeimage.builder/com.oracle.svm.hosted.NativeImageGenerator.runPointsToAnalysis(NativeImageGenerator.java:765)
+	at org.graalvm.nativeimage.builder/com.oracle.svm.hosted.NativeImageGenerator.doRun(NativeImageGenerator.java:580)
+	at org.graalvm.nativeimage.builder/com.oracle.svm.hosted.NativeImageGenerator.run(NativeImageGenerator.java:537)
+	at org.graalvm.nativeimage.builder/com.oracle.svm.hosted.NativeImageGeneratorRunner.buildImage(NativeImageGeneratorRunner.java:408)
+	at org.graalvm.nativeimage.builder/com.oracle.svm.hosted.NativeImageGeneratorRunner.build(NativeImageGeneratorRunner.java:612)
+	at org.graalvm.nativeimage.builder/com.oracle.svm.hosted.NativeImageGeneratorRunner.start(NativeImageGeneratorRunner.java:134)
+	at org.graalvm.nativeimage.builder/com.oracle.svm.hosted.NativeImageGeneratorRunner.main(NativeImageGeneratorRunner.java:94)
+
+com.oracle.svm.driver.NativeImage$NativeImageError
+	at org.graalvm.nativeimage.driver/com.oracle.svm.driver.NativeImage.showError(NativeImage.java:2035)
+	at org.graalvm.nativeimage.driver/com.oracle.svm.driver.NativeImage.build(NativeImage.java:1655)
+	at org.graalvm.nativeimage.driver/com.oracle.svm.driver.NativeImage.performBuild(NativeImage.java:1614)
+	at org.graalvm.nativeimage.driver/com.oracle.svm.driver.NativeImage.main(NativeImage.java:1588)
+```
